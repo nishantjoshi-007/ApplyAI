@@ -172,9 +172,91 @@ body {
     flex: 1;
 }
 
+/* Autofill Styles */
+.divider {
+    text-align: center;
+    margin: 15px 0;
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: 500;
+    position: relative;
+}
+
+.divider:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #dee2e6;
+    z-index: 1;
+}
+
+.divider:after {
+    content: attr(data-text);
+    background: #f8f9fa;
+    padding: 0 10px;
+    position: relative;
+    z-index: 2;
+}
+
+.autofill-status {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 6px;
+    background: #e9ecef;
+    font-size: 13px;
+    color: #495057;
+}
+
+.autofill-status.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.autofill-status.error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.form-scan-info {
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.form-scan-info div {
+    margin-bottom: 3px;
+}
+
+.autofill-message {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.autofill-message.info {
+    color: #0c5460;
+}
+
+.autofill-message.success {
+    color: #155724;
+}
+
+.autofill-message.error {
+    color: #721c24;
+}
+
+.autofill-message.warning {
+    color: #856404;
+}
+
 /* Options Page Styles */
 .options-body {
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
     padding: 20px;
 }
@@ -192,6 +274,122 @@ body {
     text-align: center;
 }
 
+/* Tab Navigation Styles */
+.tab-navigation {
+    display: flex;
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 30px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 15px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: #6c757d;
+    border-bottom: 3px solid transparent;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    min-width: 120px;
+    text-align: center;
+    position: relative;
+}
+
+.tab-button:hover {
+    color: #007bff;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+}
+
+.tab-button.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+    background: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+    box-shadow: 0 -2px 4px rgba(0, 123, 255, 0.1);
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: white;
+    z-index: 1;
+}
+
+/* Tab Content Styles */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 0 8px 8px 8px;
+    min-height: 340px;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tab-specific Actions */
+.tab-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.global-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 2px solid #e9ecef;
+    text-align: center;
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 8px;
+}
+
+.global-actions .button {
+    font-size: 16px;
+    padding: 15px 30px;
+    font-weight: 600;
+}
+
+/* Mobile Tab Navigation */
+@media (max-width: 768px) {
+    .tab-navigation {
+        justify-content: space-between;
+    }
+    
+    .tab-button {
+        font-size: 12px;
+        padding: 12px 8px;
+        min-width: auto;
+        flex: 1;
+    }
+    
+    .options-body {
+        padding: 15px;
+    }
+    
+    .container {
+        padding: 20px;
+    }
+}
+
+/* Form Group Styles */
 .form-group {
     margin-bottom: 25px;
 }
@@ -409,4 +607,251 @@ textarea {
     white-space: pre-wrap;
     font-size: 16px;
     line-height: 1.7;
+}
+
+/* Personal Details Section Styles */
+.import-options {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.help-text-inline {
+    color: #6c757d;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.personal-details-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.details-section {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 20px;
+    background: #f8f9fa;
+}
+
+.details-section h3 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 8px;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.form-row:last-child {
+    margin-bottom: 0;
+}
+
+.form-col {
+    flex: 1;
+}
+
+.form-col.full-width {
+    flex: 2;
+}
+
+.form-col label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #495057;
+    font-size: 14px;
+}
+
+.form-col input,
+.form-col select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+
+.form-col input:focus,
+.form-col select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    outline: none;
+}
+
+.form-col input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+    transform: scale(1.1);
+}
+
+.form-col label:has(input[type="checkbox"]) {
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.form-col label:has(input[type="checkbox"]):hover {
+    color: #007bff;
+}
+
+/* Responsive Design for Personal Details */
+@media (max-width: 768px) {
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .details-section {
+        padding: 15px;
+    }
+    
+    .import-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+/* Dynamic Entries Styles */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.section-header h4 {
+    margin: 0;
+    color: #495057;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.add-entry-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.add-entry-btn:hover {
+    background: #218838;
+}
+
+.entries-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.entry-item {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 15px;
+    background: white;
+    position: relative;
+}
+
+.entry-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.entry-number {
+    font-weight: 600;
+    color: #007bff;
+    font-size: 13px;
+}
+
+.remove-entry-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+    font-weight: 500;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.remove-entry-btn:hover {
+    background: #c82333;
+}
+
+.entry-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.entry-row {
+    display: flex;
+    gap: 15px;
+}
+
+.entry-row .form-col {
+    flex: 1;
+}
+
+.entry-row .form-col.full-width {
+    flex: 2;
+}
+
+.urls-section h4,
+.experience-section h4,
+.education-section h4 {
+    margin: 15px 0 10px 0;
+    color: #495057;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.urls-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #e9ecef;
+}
+
+@media (max-width: 768px) {
+    .entry-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .remove-entry-btn {
+        position: static;
+        margin-top: 10px;
+        align-self: flex-end;
+    }
 }

@@ -11,96 +11,277 @@
         
         <div id="statusMessage" style="display: none;"></div>
 
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" data-tab="api-setup">🔑 API & Setup</button>
+            <button class="tab-button" data-tab="personal-info">👤 Personal Info</button>
+            <button class="tab-button" data-tab="cover-letter">📝 Cover Letter</button>
+        </div>
+
         <form id="settingsForm">
-            <div class="form-group">
-                <label for="geminiApiKey">🔑 Gemini API Key</label>
-                <div class="help-text">
-                    Get your API key from Google AI Studio. This will be stored locally in your browser.
-                </div>
-                <input type="password" id="geminiApiKey" class="api-key-input" placeholder="Enter your Gemini API key">
-                <div class="api-instructions">
-                    <strong>How to get your Gemini API key:</strong><br>
-                    1. Go to <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
-                    2. Sign in with your Google account<br>
-                    3. Click "Create API Key"<br>
-                    4. Copy the generated key and paste it here
-                </div>
-            </div>
-
-
-            <div class="form-group">
-                <label for="resume">📄 Your Resume Content</label>
-                <div class="help-text">
-                    Paste your resume content here or upload a PDF, DOCX, or TXT file. Include your experience, skills, education, and achievements.
-                </div>
-                <label for="resumeFile" class="file-upload-label">📤 Upload Resume File</label>
-                <input type="file" id="resumeFile" accept=".pdf,.doc,.docx,.txt" class="file-upload-input">
-                <textarea id="resume" placeholder="Enter your complete resume content here..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="coverLetterTemplate">📝 Cover Letter Template</label>
-                <div class="help-text">
-                    Create your cover letter template or upload a PDF, DOCX, or TXT file. Use placeholders like [Company Name], [Position] that will be filled based on the job description.
-                </div>
-                <label for="templateFile" class="file-upload-label">📤 Upload Template File</label>
-                <input type="file" id="templateFile" accept=".pdf,.doc,.docx,.txt" class="file-upload-input">
-                <textarea id="coverLetterTemplate" placeholder="Enter your cover letter template here..."></textarea>
-                <div class="template-example">
-                    <strong>Example Template:</strong><br>
-                    Dear Hiring Manager,<br><br>
-                    I am writing to express my strong interest in the [Position] role at [Company Name]. With my background in [Relevant Field] and [X] years of experience, I am confident that I would be a valuable addition to your team.<br><br>
-                    In my current role as [Current Position], I have successfully [Key Achievement/Experience]. This experience has prepared me well for the challenges described in your job posting, particularly [Specific Requirement from Job Description].<br><br>
-                    I am particularly excited about [Something specific about the company/role] and would welcome the opportunity to discuss how my skills and enthusiasm can contribute to [Company Name]'s continued success.<br><br>
-                    Thank you for your consideration. I look forward to hearing from you.<br><br>
-                    Sincerely,<br>
-                    [Your Name]
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="coverLetterTone">🎭 Cover Letter Tone</label>
-                <div class="help-text">
-                    Choose the tone for your cover letter. You can select up to 3 tones or create your own custom tone.
-                </div>
-                <div class="tone-options">
-                    <div class="predefined-tones">
-                        <label class="tone-checkbox">
-                            <input type="checkbox" name="tones" value="professional">
-                            <span>Professional & Formal</span>
-                        </label>
-                        <label class="tone-checkbox">
-                            <input type="checkbox" name="tones" value="enthusiastic">
-                            <span>Enthusiastic & Energetic</span>
-                        </label>
-                        <label class="tone-checkbox">
-                            <input type="checkbox" name="tones" value="confident">
-                            <span>Confident & Assertive</span>
-                        </label>
-                        <label class="tone-checkbox">
-                            <input type="checkbox" name="tones" value="friendly">
-                            <span>Friendly & Approachable</span>
-                        </label>
-                        <label class="tone-checkbox">
-                            <input type="checkbox" name="tones" value="analytical">
-                            <span>Analytical & Detail-oriented</span>
-                        </label>
+            <!-- API & Setup Tab -->
+            <div class="tab-content active" id="api-setup">
+                <div class="form-group">
+                    <label for="geminiApiKey">🔑 Gemini API Key</label>
+                    <div class="help-text">
+                        Get your API key from Google AI Studio. This will be stored locally in your browser.
                     </div>
-                    <div class="custom-tone-section">
-                        <label for="customTone">Custom Tone:</label>
-                        <input type="text" id="customTone" placeholder="e.g., Creative and innovative, Humble and collaborative" maxlength="100">
-                        <button type="button" id="addCustomToneBtn" class="button secondary" style="margin-top: 10px; padding: 8px 16px; font-size: 14px;">Add Custom Tone</button>
-                    </div>
-                    <div id="selectedTones" class="selected-tones">
-                        <strong>Selected Tones:</strong>
-                        <div id="tonesList"></div>
+                    <input type="password" id="geminiApiKey" class="api-key-input" placeholder="Enter your Gemini API key">
+                    <div class="api-instructions">
+                        <strong>How to get your Gemini API key:</strong><br>
+                        1. Go to <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                        2. Sign in with your Google account<br>
+                        3. Click "Create API Key"<br>
+                        4. Copy the generated key and paste it here
                     </div>
                 </div>
+                
+                <div class="tab-actions">
+                    <button type="button" id="testBtn" class="button secondary">🧪 Test Configuration</button>
+                </div>
             </div>
 
-            <div class="actions">
-                <button type="submit" class="button">💾 Save Settings</button>
-                <button type="button" id="testBtn" class="button secondary">🧪 Test Configuration</button>
+            <!-- Personal Info Tab -->
+            <div class="tab-content" id="personal-info">
+                <div class="form-group">
+                    <label for="personalDetails">👤 Personal Details for Autofill</label>
+                    <div class="help-text">
+                        Fill in your personal details to enable automatic form filling on job application pages. You can upload your resume PDF to auto-import data or fill manually.
+                    </div>
+                    <div class="import-options">
+                        <label for="profileResumeFile" class="button secondary">📤 Upload Resume PDF</label>
+                        <input type="file" id="profileResumeFile" accept=".pdf,.doc,.docx,.txt" class="file-upload-input">
+                        <button type="button" id="importFromResumeBtn" class="button secondary">📄 Import from Uploaded Resume</button>
+                        <span class="help-text-inline">or fill manually below</span>
+                    </div>
+                    
+                    <div class="personal-details-grid">
+                        <!-- Basic Information -->
+                        <div class="details-section">
+                            <h3>📋 Basic Information</h3>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label for="firstName">First Name</label>
+                                    <input type="text" id="firstName" placeholder="Enter your first name">
+                                </div>
+                                <div class="form-col">
+                                    <label for="lastName">Last Name</label>
+                                    <input type="text" id="lastName" placeholder="Enter your last name">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label for="email">Email Address</label>
+                                    <input type="email" id="email" placeholder="Enter your email address">
+                                </div>
+                                <div class="form-col">
+                                    <label for="phone">Phone Number</label>
+                                    <input type="tel" id="phone" placeholder="Enter your phone number">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Professional URLs -->
+                        <div class="details-section">
+                            <h3>🔗 Professional URLs</h3>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label for="linkedinUrl">LinkedIn Profile</label>
+                                    <input type="url" id="linkedinUrl" placeholder="https://linkedin.com/in/yourprofile">
+                                </div>
+                                <div class="form-col">
+                                    <label for="portfolioUrl">Portfolio/Website</label>
+                                    <input type="url" id="portfolioUrl" placeholder="https://yourwebsite.com">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label for="githubUrl">GitHub Profile</label>
+                                    <input type="url" id="githubUrl" placeholder="https://github.com/yourusername">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address Information -->
+                        <div class="details-section">
+                            <h3>🏠 Address Information</h3>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label for="address1">Address Line 1</label>
+                                    <input type="text" id="address1" placeholder="Street address">
+                                </div>
+                                <div class="form-col">
+                                    <label for="address2">Address Line 2</label>
+                                    <input type="text" id="address2" placeholder="Apt, suite, etc. (optional)">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label for="city">City</label>
+                                    <input type="text" id="city" placeholder="Enter your city">
+                                </div>
+                                <div class="form-col">
+                                    <label for="state">State/Province</label>
+                                    <input type="text" id="state" placeholder="Enter your state/province">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label for="zipCode">ZIP/Postal Code</label>
+                                    <input type="text" id="zipCode" placeholder="Enter your ZIP/postal code">
+                                </div>
+                                <div class="form-col">
+                                    <label for="country">Country</label>
+                                    <input type="text" id="country" placeholder="Enter your country">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Professional Information -->
+                        <div class="details-section">
+                            <h3>💼 Professional Information</h3>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label for="totalExperience">Years of Experience</label>
+                                    <input type="number" id="totalExperience" placeholder="Total years of experience" min="0" max="50">
+                                </div>
+                                <div class="form-col">
+                                    <label for="desiredSalary">Desired Salary (Optional)</label>
+                                    <input type="text" id="desiredSalary" placeholder="e.g., $80,000 - $100,000">
+                                </div>
+                            </div>
+                            
+                            <!-- Work Experience Section -->
+                            <div class="experience-section">
+                                <div class="section-header">
+                                    <h4>Work Experience</h4>
+                                    <button type="button" class="add-entry-btn" data-type="experience">+ Add Experience</button>
+                                </div>
+                                <div id="experienceEntries" class="entries-container">
+                                    <!-- Experience entries will be added here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Education Information -->
+                        <div class="details-section">
+                            <h3>🎓 Education Information</h3>
+                            <div class="education-section">
+                                <div class="section-header">
+                                    <h4>Education History</h4>
+                                    <button type="button" class="add-entry-btn" data-type="education">+ Add Education</button>
+                                </div>
+                                <div id="educationEntries" class="entries-container">
+                                    <!-- Education entries will be added here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Work Authorization -->
+                        <div class="details-section">
+                            <h3>📋 Work Authorization</h3>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label for="workAuthorization">Work Authorization Status</label>
+                                    <select id="workAuthorization">
+                                        <option value="">Select work authorization</option>
+                                        <option value="citizen">US Citizen</option>
+                                        <option value="permanent_resident">Permanent Resident</option>
+                                        <option value="h1b">H1B Visa</option>
+                                        <option value="opt">F1 OPT</option>
+                                        <option value="student">Student Visa</option>
+                                        <option value="need_sponsorship">Will need sponsorship</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-col">
+                                    <label for="availableStartDate">Available Start Date</label>
+                                    <input type="date" id="availableStartDate">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-col">
+                                    <label>
+                                        <input type="checkbox" id="willingToRelocate"> Willing to relocate
+                                    </label>
+                                </div>
+                                <div class="form-col">
+                                    <label>
+                                        <input type="checkbox" id="remoteWork"> Open to remote work
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cover Letter Tab -->
+            <div class="tab-content" id="cover-letter">
+                <div class="form-group">
+                    <label for="coverLetterTemplate">📝 Cover Letter Template</label>
+                    <div class="help-text">
+                        Create your cover letter template or upload a PDF, DOCX, or TXT file. Use placeholders like [Company Name], [Position] that will be filled based on the job description.
+                    </div>
+                    <label for="templateFile" class="file-upload-label">📤 Upload Template File</label>
+                    <input type="file" id="templateFile" accept=".pdf,.doc,.docx,.txt" class="file-upload-input">
+                    <textarea id="coverLetterTemplate" placeholder="Enter your cover letter template here..."></textarea>
+                    <div class="template-example">
+                        <strong>Example Template:</strong><br>
+                        Dear Hiring Manager,<br><br>
+                        I am writing to express my strong interest in the [Position] role at [Company Name]. With my background in [Relevant Field] and [X] years of experience, I am confident that I would be a valuable addition to your team.<br><br>
+                        In my current role as [Current Position], I have successfully [Key Achievement/Experience]. This experience has prepared me well for the challenges described in your job posting, particularly [Specific Requirement from Job Description].<br><br>
+                        I am particularly excited about [Something specific about the company/role] and would welcome the opportunity to discuss how my skills and enthusiasm can contribute to [Company Name]'s continued success.<br><br>
+                        Thank you for your consideration. I look forward to hearing from you.<br><br>
+                        Sincerely,<br>
+                        [Your Name]
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="coverLetterTone">🎭 Cover Letter Tone</label>
+                    <div class="help-text">
+                        Choose the tone for your cover letter. You can select up to 3 tones or create your own custom tone.
+                    </div>
+                    <div class="tone-options">
+                        <div class="predefined-tones">
+                            <label class="tone-checkbox">
+                                <input type="checkbox" name="tones" value="professional">
+                                <span>Professional & Formal</span>
+                            </label>
+                            <label class="tone-checkbox">
+                                <input type="checkbox" name="tones" value="enthusiastic">
+                                <span>Enthusiastic & Energetic</span>
+                            </label>
+                            <label class="tone-checkbox">
+                                <input type="checkbox" name="tones" value="confident">
+                                <span>Confident & Assertive</span>
+                            </label>
+                            <label class="tone-checkbox">
+                                <input type="checkbox" name="tones" value="friendly">
+                                <span>Friendly & Approachable</span>
+                            </label>
+                            <label class="tone-checkbox">
+                                <input type="checkbox" name="tones" value="analytical">
+                                <span>Analytical & Detail-oriented</span>
+                            </label>
+                        </div>
+                        <div class="custom-tone-section">
+                            <label for="customTone">Custom Tone:</label>
+                            <input type="text" id="customTone" placeholder="e.g., Creative and innovative, Humble and collaborative" maxlength="100">
+                            <button type="button" id="addCustomToneBtn" class="button secondary" style="margin-top: 10px; padding: 8px 16px; font-size: 14px;">Add Custom Tone</button>
+                        </div>
+                        <div id="selectedTones" class="selected-tones">
+                            <strong>Selected Tones:</strong>
+                            <div id="tonesList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Actions -->
+            <div class="global-actions">
+                <button type="submit" class="button">💾 Save All Settings</button>
             </div>
         </form>
     </div>

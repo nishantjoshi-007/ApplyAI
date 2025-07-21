@@ -11,16 +11,33 @@ class CoverLetterGenerator {
     async init() {
         await this.checkSetup();
         this.bindEvents();
-        this.checkApiStatus();
+        this.showDetectedJobDescription();
+        // Only check API status if user is about to generate a cover letter, not on every popup open
+    }
+
+    async showDetectedJobDescription() {
+        // Always try to scrape and show the job description
+        const jobDescription = await this.scrapeJobDescription();
+        const jobInfoElement = document.getElementById('jobInfo');
+        const jobInfoSection = document.getElementById('jobInfoSection');
+        if (jobInfoElement && jobInfoSection) {
+            if (jobDescription && jobDescription !== 'Could not extract job description') {
+                jobInfoElement.textContent = jobDescription.substring(0, 300) + (jobDescription.length > 300 ? '...' : '');
+                jobInfoSection.style.display = 'block';
+            } else {
+                jobInfoElement.textContent = 'No job description detected on this page.';
+                jobInfoSection.style.display = 'block';
+            }
+        }
     }
     async checkApiStatus() {
-        // Show loading status
-        this.showApiStatus('Checking Gemini API status...', 'info');
+        // Show API status in statusMessage, not apiStatusBar
+        this.showStatus('Checking Gemini API status...', 'info');
         try {
             const result = await chrome.storage.local.get(['geminiApiKey']);
             const apiKey = result.geminiApiKey;
             if (!apiKey) {
-                this.showApiStatus('API key not set', 'error');
+                this.showStatus('API key not set', 'error');
                 return;
             }
             // Use Gemini 2.0 Flash Experimental endpoint
@@ -34,17 +51,17 @@ class CoverLetterGenerator {
             });
             if (!response.ok) {
                 const errorData = await response.json();
-                this.showApiStatus(`API error: ${errorData.error?.message || 'Unknown error'}`, 'error');
+                this.showStatus(`API error: ${errorData.error?.message || 'Unknown error'}`, 'error');
                 return;
             }
             const data = await response.json();
             if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                this.showApiStatus('✅ Gemini API connected', 'success');
+                this.showStatus('✅ Gemini API connected', 'success');
             } else {
-                this.showApiStatus('API responded, but no valid content', 'error');
+                this.showStatus('API responded, but no valid content', 'error');
             }
         } catch (error) {
-            this.showApiStatus('API connection failed: ' + error.message, 'error');
+            this.showStatus('API connection failed: ' + error.message, 'error');
         }
     }
 
@@ -59,19 +76,90 @@ class CoverLetterGenerator {
 
     async checkSetup() {
         try {
-            const result = await chrome.storage.local.get(['resume', 'coverLetterTemplate', 'geminiApiKey']);
+            const result = await chrome.storage.local.get(['coverLetterTemplate', 'geminiApiKey', 'personalDetails']);
             
-            if (!result.resume || !result.coverLetterTemplate || !result.geminiApiKey) {
+            // Check what features are available
+            const hasApiKey = result.geminiApiKey && result.geminiApiKey.trim();
+            const hasCoverTemplate = result.coverLetterTemplate && result.coverLetterTemplate.trim();
+            const hasPersonalDetails = result.personalDetails && Object.keys(result.personalDetails).some(key => result.personalDetails[key]);
+            
+            // Show setup required only if nothing is configured
+            if (!hasApiKey && !hasCoverTemplate && !hasPersonalDetails) {
                 this.showSetupRequired();
                 return false;
             }
             
+            // Show main content and conditionally display features
             this.showMainContent();
+            this.configureAvailableFeatures(hasApiKey, hasPersonalDetails, hasCoverTemplate);
             return true;
         } catch (error) {
             console.error('Error checking setup:', error);
             this.showStatus('Error checking configuration', 'error');
             return false;
+        }
+    }
+
+    configureAvailableFeatures(hasApiKey, hasPersonalDetails, hasCoverTemplate) {
+        const generateBtn = document.getElementById('generateBtn');
+        const autofillBtn = document.getElementById('autofillBtn');
+        const divider = document.querySelector('.divider');
+        
+        // Configure cover letter generation (API key AND personal details required)
+        if (hasApiKey && hasPersonalDetails) {
+            generateBtn.style.display = 'block';
+            generateBtn.disabled = false;
+            generateBtn.title = 'Cover letter generation available';
+        } else {
+            generateBtn.style.display = 'none';
+        }
+
+        // Configure autofill functionality (personal details required)
+        if (hasPersonalDetails) {
+            autofillBtn.style.display = 'block';
+            autofillBtn.disabled = false;
+            autofillBtn.title = 'Autofill application forms with your profile';
+        } else {
+            autofillBtn.style.display = 'none';
+        }
+        
+        // Show/hide divider based on what's visible
+        if (generateBtn.style.display === 'block' && autofillBtn.style.display === 'block') {
+            divider.style.display = 'block';
+        } else {
+            divider.style.display = 'none';
+        }
+        
+        // Show status message about available features
+        this.showFeatureStatus(hasApiKey, hasPersonalDetails);
+    }
+
+    showFeatureStatus(hasApiKey, hasPersonalDetails) {
+        let statusMessages = [];
+
+        // Cover letter generation status
+        if (!hasPersonalDetails) {
+            if (!hasApiKey) {
+                statusMessages.push('⚠️ Add your API key and upload your resume in Settings to enable cover letter generation.');
+            } else {
+                statusMessages.push('⚠️ Upload your resume in Settings to enable cover letter generation and autofill.');
+            }
+        } else if (!hasApiKey) {
+            statusMessages.push('⚠️ Add your API key to enable cover letter generation.');
+        }
+
+        // If both features are available, show a success message
+        if (hasApiKey && hasPersonalDetails) {
+            statusMessages.push('✅ All features enabled!');
+        }
+
+        const statusDiv = document.getElementById('apiStatusBar');
+        if (statusMessages.length > 0) {
+            statusDiv.innerHTML = statusMessages.join('<br>');
+            statusDiv.style.display = 'block';
+            statusDiv.className = 'status info';
+        } else {
+            statusDiv.style.display = 'none';
         }
     }
 
@@ -92,6 +180,10 @@ class CoverLetterGenerator {
 
         document.getElementById('generateBtn')?.addEventListener('click', () => {
             this.generateCoverLetter();
+        });
+
+        document.getElementById('autofillBtn')?.addEventListener('click', () => {
+            this.handleAutofill();
         });
 
         document.getElementById('downloadBtn')?.addEventListener('click', () => {
@@ -130,12 +222,9 @@ class CoverLetterGenerator {
             // Hide the generate button after success
             const generateBtn = document.getElementById('generateBtn');
             if (generateBtn) generateBtn.style.display = 'none';
-            // Check API status again after generation
-            await this.checkApiStatus();
         } catch (error) {
             console.error('Error generating cover letter:', error);
             this.showStatus(`Error: ${error.message}`, 'error');
-            await this.checkApiStatus();
         } finally {
             this.showLoading(false);
         }
@@ -204,19 +293,33 @@ class CoverLetterGenerator {
     }
 
     async callGeminiAPI(jobDescription) {
-        const result = await chrome.storage.local.get(['resume', 'coverLetterTemplate', 'geminiApiKey', 'coverLetterTones']);
-        
+        const result = await chrome.storage.local.get(['personalDetails', 'coverLetterTemplate', 'geminiApiKey', 'coverLetterTones']);
+
+        // Build resume content from profile fields
+        let resumeContent = '';
+        if (result.personalDetails) {
+            const pd = result.personalDetails;
+            resumeContent = `Name: ${pd.firstName || ''} ${pd.lastName || ''}\nEmail: ${pd.email || ''}`;
+            if (pd.phone) resumeContent += `\nPhone: ${pd.phone}`;
+            if (pd.address) resumeContent += `\nAddress: ${pd.address}`;
+            if (pd.summary) resumeContent += `\nSummary: ${pd.summary}`;
+            if (pd.experience) resumeContent += `\nExperience: ${pd.experience}`;
+            if (pd.education) resumeContent += `\nEducation: ${pd.education}`;
+            if (pd.skills) resumeContent += `\nSkills: ${pd.skills}`;
+            // Add any other fields as needed
+        }
+
         // Build tone instruction
         let toneInstruction = '';
         if (result.coverLetterTones && result.coverLetterTones.length > 0) {
             toneInstruction = `\n7. Write in a ${result.coverLetterTones.join(', ')} tone`;
         }
-        
+
         const prompt = `
 You are a professional cover letter writer. Generate a personalized cover letter based on the following:
 
 RESUME:
-${result.resume}
+${resumeContent}
 
 COVER LETTER TEMPLATE:
 ${result.coverLetterTemplate}
@@ -261,7 +364,7 @@ Generate only the cover letter content, no additional commentary.
         }
 
         const data = await response.json();
-        
+
         if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
             throw new Error('Invalid response from Gemini API');
         }
@@ -269,15 +372,7 @@ Generate only the cover letter content, no additional commentary.
         return data.candidates[0].content.parts[0].text;
     }
 
-    showJobInfo(jobDescription) {
-        const jobInfoElement = document.getElementById('jobInfo');
-        const jobInfoSection = document.getElementById('jobInfoSection');
-        
-        if (jobInfoElement && jobInfoSection) {
-            jobInfoElement.textContent = jobDescription.substring(0, 300) + (jobDescription.length > 300 ? '...' : '');
-            jobInfoSection.style.display = 'block';
-        }
-    }
+    // showJobInfo is now handled by showDetectedJobDescription always
 
     showResult(coverLetter) {
         const resultSection = document.getElementById('resultSection');
@@ -371,6 +466,115 @@ Generate only the cover letter content, no additional commentary.
             console.error('Error downloading cover letter:', error);
             this.showStatus('Error downloading cover letter', 'error');
         }
+    }
+
+    // Autofill Methods
+    async handleAutofill() {
+        try {
+            // Check if personal details are configured
+            const result = await chrome.storage.local.get(['personalDetails']);
+            
+            if (!result.personalDetails || !this.hasRequiredPersonalDetails(result.personalDetails)) {
+                this.showAutofillStatus('Please configure your personal details in settings first.', 'error');
+                return;
+            }
+
+            this.showAutofillStatus('Scanning page for form fields...', 'info');
+
+            // Get current tab
+            const tabs = await chrome.tabs.query({active: true, currentWindow: true});
+            const currentTab = tabs[0];
+
+            // First, scan for forms
+            const scanResult = await chrome.tabs.sendMessage(currentTab.id, {
+                action: 'scanForForms'
+            });
+
+            if (scanResult.formInfo.inputsFound === 0) {
+                this.showAutofillStatus('No fillable form fields found on this page.', 'error');
+                return;
+            }
+
+            // Show scan results
+            this.displayFormScanResults(scanResult.formInfo);
+
+            // Perform autofill
+            const autofillResult = await chrome.tabs.sendMessage(currentTab.id, {
+                action: 'autofillForm',
+                personalDetails: result.personalDetails
+            });
+
+            if (autofillResult.success) {
+                this.showAutofillStatus('Form autofill completed successfully!', 'success');
+            } else {
+                this.showAutofillStatus('Autofill completed with some issues. Please review the form.', 'warning');
+            }
+
+        } catch (error) {
+            console.error('Error during autofill:', error);
+            if (error.message.includes('Could not establish connection')) {
+                this.showAutofillStatus('Please refresh the page and try again.', 'error');
+            } else {
+                this.showAutofillStatus('Error during autofill. Please try again.', 'error');
+            }
+        }
+    }
+
+    hasRequiredPersonalDetails(personalDetails) {
+        const requiredFields = ['firstName', 'lastName', 'email'];
+        return requiredFields.every(field => personalDetails[field] && personalDetails[field].trim());
+    }
+
+    showAutofillStatus(message, type) {
+        const statusElement = document.getElementById('autofillStatus');
+        const resultElement = document.getElementById('formScanResult');
+        
+        if (statusElement && resultElement) {
+            resultElement.innerHTML = `
+                <div class="autofill-message ${type}">
+                    ${this.getStatusIcon(type)} ${message}
+                </div>
+            `;
+            statusElement.className = `autofill-status ${type}`;
+            statusElement.style.display = 'block';
+
+            // Auto-hide after 5 seconds for success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+    }
+
+    displayFormScanResults(formInfo) {
+        const resultElement = document.getElementById('formScanResult');
+        
+        if (resultElement) {
+            const detectedFieldsText = formInfo.detectedFields.length > 0 
+                ? formInfo.detectedFields.slice(0, 3).map(field => field.type).join(', ') + 
+                  (formInfo.detectedFields.length > 3 ? '...' : '')
+                : 'None detected';
+
+            resultElement.innerHTML = `
+                <div class="form-scan-info">
+                    <div><strong>📊 Form Analysis:</strong></div>
+                    <div>• Forms found: ${formInfo.formsFound}</div>
+                    <div>• Input fields: ${formInfo.inputsFound}</div>
+                    <div>• Detected fields: ${detectedFieldsText}</div>
+                </div>
+            `;
+        }
+    }
+
+    getStatusIcon(type) {
+        const icons = {
+            'info': '🔍',
+            'success': '✅',
+            'error': '❌',
+            'warning': '⚠️'
+        };
+        return icons[type] || '🔍';
     }
 }
 

@@ -6,9 +6,11 @@ A Chrome extension that generates personalized cover letters from job descriptio
 
 - 🎯 **Smart Job Description Extraction**: Automatically extracts job descriptions from popular job sites (LinkedIn, Indeed, Glassdoor, etc.)
 - 🤖 **AI-Powered Generation**: Uses Google Gemini API to create personalized cover letters
-- 📄 **Template-Based**: Uses your custom cover letter template and resume for consistent, personalized results
+- � **Auto-Fill Application Forms**: Automatically fills job application forms with your personal details
+- �📄 **Template-Based**: Uses your custom cover letter template and resume for consistent, personalized results
 - 🎭 **Tone Customization**: Choose from pre-defined tones or create custom tones for your cover letters
-- 💾 **Local Storage**: All your data (resume, template, API key) is stored locally in your browser
+- 🧠 **Smart Resume Import**: Import personal details from your resume using AI
+- 💾 **Local Storage**: All your data (resume, template, API key, personal details) is stored locally in your browser
 - 📥 **Multiple Download Formats**: Download generated cover letters as TXT, PDF, or DOCX files
 
 ## Setup Instructions
@@ -34,14 +36,25 @@ A Chrome extension that generates personalized cover letters from job descriptio
 3. Paste your complete resume content
 4. Customize the cover letter template (or use the provided default)
 5. Choose your preferred tone(s) for the cover letters (up to 3)
-6. Click "Save Settings" and test the configuration
+6. **Fill Personal Details**: Complete your personal information for autofill (or use "Import from Resume" for AI assistance)
+7. Click "Save Settings" and test the configuration
 
 ## How to Use
+
+### For Cover Letter Generation:
 
 1. **Navigate to a Job Posting**: Go to any job posting on LinkedIn, Indeed, Glassdoor, or other job sites
 2. **Click ApplyAI**: Click the ApplyAI extension icon in your Chrome toolbar
 3. **Generate Cover Letter**: Click "Generate Cover Letter" button
 4. **Review and Download**: Review the generated cover letter and download it as TXT, PDF, or DOCX
+
+### For Application Form Autofill:
+
+1. **Configure Personal Details**: Go to extension settings and fill in your personal information
+2. **Navigate to Application Form**: Go to any job application form
+3. **Click ApplyAI**: Click the ApplyAI extension icon in your Chrome toolbar
+4. **Autofill Form**: Click "Autofill Application Form" button
+5. **Review and Submit**: Review the filled information and submit your application
 
 ## Supported Job Sites
 
