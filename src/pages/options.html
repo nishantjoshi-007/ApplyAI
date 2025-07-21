@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ApplyAI - Settings</title>
+    <link rel="stylesheet" href="../styles/main.css">
+</head>
+<body class="options-body">
+    <div class="container">
+        <h1>🤖 ApplyAI Settings</h1>
+        
+        <div id="statusMessage" style="display: none;"></div>
+
+        <form id="settingsForm">
+            <div class="form-group">
+                <label for="geminiApiKey">🔑 Gemini API Key</label>
+                <div class="help-text">
+                    Get your API key from Google AI Studio. This will be stored locally in your browser.
+                </div>
+                <input type="password" id="geminiApiKey" class="api-key-input" placeholder="Enter your Gemini API key">
+                <div class="api-instructions">
+                    <strong>How to get your Gemini API key:</strong><br>
+                    1. Go to <a href="https://makersuite.google.com/app/apikey" target="_blank">Google AI Studio</a><br>
+                    2. Sign in with your Google account<br>
+                    3. Click "Create API Key"<br>
+                    4. Copy the generated key and paste it here
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <label for="resume">📄 Your Resume Content</label>
+                <div class="help-text">
+                    Paste your resume content here or upload a PDF, DOCX, or TXT file. Include your experience, skills, education, and achievements.
+                </div>
+                <label for="resumeFile" class="file-upload-label">📤 Upload Resume File</label>
+                <input type="file" id="resumeFile" accept=".pdf,.doc,.docx,.txt" class="file-upload-input">
+                <textarea id="resume" placeholder="Enter your complete resume content here..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="coverLetterTemplate">📝 Cover Letter Template</label>
+                <div class="help-text">
+                    Create your cover letter template or upload a PDF, DOCX, or TXT file. Use placeholders like [Company Name], [Position] that will be filled based on the job description.
+                </div>
+                <label for="templateFile" class="file-upload-label">📤 Upload Template File</label>
+                <input type="file" id="templateFile" accept=".pdf,.doc,.docx,.txt" class="file-upload-input">
+                <textarea id="coverLetterTemplate" placeholder="Enter your cover letter template here..."></textarea>
+                <div class="template-example">
+                    <strong>Example Template:</strong><br>
+                    Dear Hiring Manager,<br><br>
+                    I am writing to express my strong interest in the [Position] role at [Company Name]. With my background in [Relevant Field] and [X] years of experience, I am confident that I would be a valuable addition to your team.<br><br>
+                    In my current role as [Current Position], I have successfully [Key Achievement/Experience]. This experience has prepared me well for the challenges described in your job posting, particularly [Specific Requirement from Job Description].<br><br>
+                    I am particularly excited about [Something specific about the company/role] and would welcome the opportunity to discuss how my skills and enthusiasm can contribute to [Company Name]'s continued success.<br><br>
+                    Thank you for your consideration. I look forward to hearing from you.<br><br>
+                    Sincerely,<br>
+                    [Your Name]
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="coverLetterTone">🎭 Cover Letter Tone</label>
+                <div class="help-text">
+                    Choose the tone for your cover letter. You can select up to 3 tones or create your own custom tone.
+                </div>
+                <div class="tone-options">
+                    <div class="predefined-tones">
+                        <label class="tone-checkbox">
+                            <input type="checkbox" name="tones" value="professional">
+                            <span>Professional & Formal</span>
+                        </label>
+                        <label class="tone-checkbox">
+                            <input type="checkbox" name="tones" value="enthusiastic">
+                            <span>Enthusiastic & Energetic</span>
+                        </label>
+                        <label class="tone-checkbox">
+                            <input type="checkbox" name="tones" value="confident">
+                            <span>Confident & Assertive</span>
+                        </label>
+                        <label class="tone-checkbox">
+                            <input type="checkbox" name="tones" value="friendly">
+                            <span>Friendly & Approachable</span>
+                        </label>
+                        <label class="tone-checkbox">
+                            <input type="checkbox" name="tones" value="analytical">
+                            <span>Analytical & Detail-oriented</span>
+                        </label>
+                    </div>
+                    <div class="custom-tone-section">
+                        <label for="customTone">Custom Tone:</label>
+                        <input type="text" id="customTone" placeholder="e.g., Creative and innovative, Humble and collaborative" maxlength="100">
+                        <button type="button" id="addCustomToneBtn" class="button secondary" style="margin-top: 10px; padding: 8px 16px; font-size: 14px;">Add Custom Tone</button>
+                    </div>
+                    <div id="selectedTones" class="selected-tones">
+                        <strong>Selected Tones:</strong>
+                        <div id="tonesList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="button">💾 Save Settings</button>
+                <button type="button" id="testBtn" class="button secondary">🧪 Test Configuration</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="../../lib/pdf.js"></script>
+    <script src="../../lib/pdf.worker.js"></script>
+    <script src="../../lib/mammoth.browser.min.js"></script>
+    <script src="options.js"></script>
+</body>
+</html>

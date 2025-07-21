@@ -1,0 +1,53 @@
+# API Keys and sensitive config
+config.js
+.env
+
+# Node modules (if using any build tools)
+node_modules/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Backup files
+*.bak
+*.backup
+
+# Third-party libraries (users need to download these separately)
+# lib/jspdf.umd.min.js
+# lib/docx.umd.min.js
+# lib/mammoth.browser.min.js
+# lib/pdf.js
+# lib/pdf.worker.js
+
+# Extension package files
+*.crx
+*.pem
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
