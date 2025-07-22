@@ -1,3 +1,77 @@
+/* Legal footer for privacy/terms pages */
+.legal-footer {
+  width: 100%;
+  margin-top: 48px;
+  padding: 4px 0 8px 0;
+  background: linear-gradient(90deg, #f7faff 60%, #e3f0ff 100%);
+  border-top: 1px solid #e0e8f0;
+  text-align: center;
+  font-size: 1em;
+  color: #0056b3;
+}
+.legal-footer .copyright {
+  color: #0056b3;
+  font-size: 0.98em;
+  letter-spacing: 0.01em;
+  margin-right: 60rem;
+}
+/* Legal footer for options/settings */
+.legal-footer {
+  width: 100%;
+  margin-top: 48px;
+  padding: 18px 0 8px 0;
+  background: linear-gradient(90deg, #f7faff 60%, #e3f0ff 100%);
+  border-top: 1px solid #e0e8f0;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: 10;
+  text-align: center;
+}
+.legal-links {
+  font-size: 1.08em;
+  letter-spacing: 0.01em;
+  color: #0056b3;
+}
+.legal-links a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0 8px;
+  transition: color 0.2s;
+}
+.legal-links a:hover {
+  color: #003366;
+  text-decoration: underline;
+}
+.legal-links .divider {
+  color: #b0c4de;
+  font-weight: 400;
+  padding: 0 2px;
+}
+/* Legal links section for options/settings */
+.legal-links {
+  text-align: center;
+  font-size: 1.08em;
+  letter-spacing: 0.01em;
+  color: #0056b3;
+}
+.legal-links a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0 8px;
+  transition: color 0.2s;
+}
+.legal-links a:hover {
+  color: #003366;
+  text-decoration: underline;
+}
+.legal-links .divider {
+  color: #b0c4de;
+  font-weight: 400;
+  padding: 0 2px;
+}
 /* ApplyAI Chrome Extension Styles */
 
 /* Base Styles */
@@ -1154,4 +1228,28 @@ textarea {
         margin-top: 10px;
         align-self: flex-end;
     }
+}
+
+/* Back navigation for privacy/terms pages */
+.back-nav {
+  margin-bottom: 24px;
+  text-align: right;
+}
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1em;
+  padding: 8px 16px;
+  border: 2px solid #007bff;
+  border-radius: 8px;
+  background: transparent;
+  transition: all 0.2s;
+}
+.back-button:hover {
+  background: #007bff;
+  color: white;
+  text-decoration: none;
 }

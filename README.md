@@ -6,12 +6,13 @@ A Chrome extension that generates personalized cover letters from job descriptio
 
 - 🎯 **Smart Job Description Extraction**: Automatically extracts job descriptions from popular job sites (LinkedIn, Indeed, Glassdoor, etc.)
 - 🤖 **AI-Powered Generation**: Uses Google Gemini API to create personalized cover letters
-- � **Auto-Fill Application Forms**: Automatically fills job application forms with your personal details
-- �📄 **Template-Based**: Uses your custom cover letter template and resume for consistent, personalized results
+- 📄 **Template-Based**: Uses your custom cover letter template and resume for consistent, personalized results
 - 🎭 **Tone Customization**: Choose from pre-defined tones or create custom tones for your cover letters
 - 🧠 **Smart Resume Import**: Import personal details from your resume using AI
 - 💾 **Local Storage**: All your data (resume, template, API key, personal details) is stored locally in your browser
 - 📥 **Multiple Download Formats**: Download generated cover letters as TXT, PDF, or DOCX files
+- ⚙️ **Easy Settings Access**: Quick access to settings from the popup with a convenient settings button
+- 📋 **Privacy & Terms**: Built-in privacy policy and terms of service for transparency
 
 ## Setup Instructions
 
@@ -31,13 +32,14 @@ A Chrome extension that generates personalized cover letters from job descriptio
 
 ### 3. Configure Settings
 
-1. Right-click the ApplyAI extension icon and select "Options"
-2. Enter your Gemini API key
-3. Paste your complete resume content
-4. Customize the cover letter template (or use the provided default)
-5. Choose your preferred tone(s) for the cover letters (up to 3)
-6. **Fill Personal Details**: Complete your personal information for autofill (or use "Import from Resume" for AI assistance)
-7. Click "Save Settings" and test the configuration
+1. Click the ApplyAI extension icon in your Chrome toolbar
+2. Click the **settings button** (⚙️) in the top-right of the popup, or right-click the extension icon and select "Options"
+3. Enter your Gemini API key
+4. Paste your complete resume content
+5. Customize the cover letter template (or use the provided default)
+6. Choose your preferred tone(s) for the cover letters (up to 3)
+7. **Fill Personal Details**: Complete your personal information for various use cases (or use "Import from Resume" for AI assistance)
+8. Click "Save Settings" and test the configuration
 
 ## How to Use
 
@@ -48,13 +50,11 @@ A Chrome extension that generates personalized cover letters from job descriptio
 3. **Generate Cover Letter**: Click "Generate Cover Letter" button
 4. **Review and Download**: Review the generated cover letter and download it as TXT, PDF, or DOCX
 
-### For Application Form Autofill:
+### Accessing Settings:
 
-1. **Configure Personal Details**: Go to extension settings and fill in your personal information
-2. **Navigate to Application Form**: Go to any job application form
-3. **Click ApplyAI**: Click the ApplyAI extension icon in your Chrome toolbar
-4. **Autofill Form**: Click "Autofill Application Form" button
-5. **Review and Submit**: Review the filled information and submit your application
+1. **From Popup**: Click the ApplyAI extension icon, then click the settings button (⚙️) in the top-right corner
+2. **From Context Menu**: Right-click the ApplyAI extension icon and select "Options"
+3. **Legal Documents**: Access Privacy Policy and Terms of Service from the settings page footer
 
 ## Supported Job Sites
 
@@ -81,7 +81,9 @@ ApplyAI/
 │   ├── pages/                 # HTML pages and their scripts
 │   │   ├── popup.html & popup.js      # Main extension popup
 │   │   ├── options.html & options.js  # Settings page
-│   │   └── preview.html & preview.js  # Cover letter preview window
+│   │   ├── preview.html & preview.js  # Cover letter preview window
+│   │   ├── privacy.html               # Privacy policy page
+│   │   └── terms.html                 # Terms of service page
 │   ├── scripts/               # Background and content scripts
 │   │   ├── background.js      # Background service worker
 │   │   └── content.js         # Job description extraction
