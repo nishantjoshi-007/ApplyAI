@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ApplyAI",
   "version": "1.2.0",
-  "description": "Generate personalized cover letters from job descriptions using AI",
+  "description": "Automate job applications with AI-powered cover letters and auto-applying.",
 
   "permissions": ["activeTab", "storage", "scripting", "contextMenus"],
 
