@@ -1,85 +1,75 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="../styles/main.css">
-</head>
-<body class="popup-body">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../styles/main.css" />
+  </head>
+  <body class="popup-body">
     <div class="header">
-        <h2>🤖 ApplyAI</h2>
-        <button id="settingsBtn" class="settings-btn" title="Open Settings"></button>
+      <h2>🤖 ApplyAI</h2>
+      <button id="settingsBtn" class="settings-btn" title="Open Settings"></button>
     </div>
 
-    <div id="apiStatusBar" class="status info" style="display: none; margin-bottom: 10px;"></div>
+    <div id="apiStatusBar" class="status info" style="display: none; margin-bottom: 10px"></div>
 
-    <div id="setupRequired" class="setup-required" style="display: none;">
-        <p>⚙️ Setup required!</p>
-        <p>Please configure your resume, cover letter template, and Gemini API key.</p>
-        <button class="button" id="openOptionsBtn">Open Settings</button>
+    <div id="setupRequired" class="setup-required" style="display: none">
+      <p>⚙️ Setup required!</p>
+      <p>Please configure your resume, cover letter template, and Gemini API key.</p>
+      <button class="button" id="openOptionsBtn">Open Settings</button>
     </div>
 
-    <div id="mainContent" style="display: none;">
-        <div class="section">
-            <div id="statusMessage" class="status" style="display: none;"></div>
-            
-            <div id="jobInfoSection" style="display: none;">
-                <h4>📄 Detected Job Description</h4>
-                <div id="jobInfo" class="job-info"></div>
-            </div>
+    <div id="mainContent" style="display: none">
+      <div class="section">
+        <div id="statusMessage" class="status" style="display: none"></div>
 
-            <div id="loadingSection" class="loading" style="display: none;">
-                <div class="spinner"></div>
-                <p>Generating your cover letter...</p>
-            </div>
-
-            <div id="generateSection">
-                <button id="generateBtn" class="button">
-                    🚀 Generate Cover Letter
-                </button>
-                
-                <div class="divider">or</div>
-                
-                <button id="autofillBtn" class="button secondary">
-                    📝 Autofill Application Form
-                </button>
-                
-                <div id="autofillStatus" class="autofill-status" style="display: none;">
-                    <div id="formScanResult"></div>
-                </div>
-            </div>
+        <div id="jobInfoSection" style="display: none">
+          <h4>📄 Detected Job Description</h4>
+          <div id="jobInfo" class="job-info"></div>
         </div>
 
-        <div id="resultSection" class="section" style="display: none;">
-            <h4>📝 Generated Cover Letter</h4>
-            <div id="coverLetterPreview" class="cover-letter-preview"></div>
-            
-            <div class="actions">
-                <div class="action-row">
-                    <button id="regenerateBtn" class="button secondary">
-                        🔄 Regenerate
-                    </button>
-                </div>
-                <div class="action-row">
-                    <button id="downloadBtn" class="button">
-                        📥 Download PDF
-                    </button>
-                    <button id="attachCoverLetterBtn" class="button secondary">
-                        📎 Attach PDF
-                    </button>
-                </div>
-            </div>
+        <div id="loadingSection" class="loading" style="display: none">
+          <div class="spinner"></div>
+          <p>Generating your cover letter...</p>
         </div>
-        
-        <div id="attachmentSection" class="section" style="display: none;">
-            <h4>📁 Quick Attach</h4>
-            <div class="attachment-actions">
-                <div id="attachmentStatus" class="attachment-status" style="display: none;"></div>
-            </div>
+
+        <div id="generateSection">
+          <button id="generateBtn" class="button">🚀 Generate Cover Letter</button>
+
+          <div class="divider">or</div>
+
+          <button id="autofillBtn" class="button secondary">📝 Autofill Application Form</button>
+
+          <div id="autofillStatus" class="autofill-status" style="display: none">
+            <div id="formScanResult"></div>
+          </div>
         </div>
+      </div>
+
+      <div id="resultSection" class="section" style="display: none">
+        <h4>📝 Generated Cover Letter</h4>
+        <div id="coverLetterPreview" class="cover-letter-preview"></div>
+
+        <div class="actions">
+          <div class="action-row">
+            <button id="regenerateBtn" class="button secondary">🔄 Regenerate</button>
+          </div>
+          <div class="action-row">
+            <button id="downloadBtn" class="button">📥 Download PDF</button>
+            <button id="attachCoverLetterBtn" class="button secondary">📎 Attach PDF</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="attachmentSection" class="section" style="display: none">
+        <h4>📁 Quick Attach</h4>
+        <div class="attachment-actions">
+          <div id="attachmentStatus" class="attachment-status" style="display: none"></div>
+        </div>
+      </div>
     </div>
 
     <script src="../../lib/jspdf.umd.min.js"></script>
     <script src="../../lib/docx.umd.min.js"></script>
     <script src="popup.js"></script>
-</body>
+  </body>
 </html>
