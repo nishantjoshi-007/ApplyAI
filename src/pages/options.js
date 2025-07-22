@@ -592,6 +592,12 @@ Sincerely,
       availableStartDate: document.getElementById("availableStartDate").value,
       willingToRelocate: document.getElementById("willingToRelocate").checked,
       remoteWork: document.getElementById("remoteWork").checked,
+
+      // Equal Opportunity Information
+      gender: document.getElementById("gender").value,
+      race: document.getElementById("race").value,
+      veteranStatus: document.getElementById("veteranStatus").value,
+      disabilityStatus: document.getElementById("disabilityStatus").value,
     };
 
     return personalDetails;
@@ -616,6 +622,10 @@ Sincerely,
       "desiredSalary",
       "workAuthorization",
       "availableStartDate",
+      "gender",
+      "race",
+      "veteranStatus",
+      "disabilityStatus",
     ];
 
     fields.forEach((field) => {
