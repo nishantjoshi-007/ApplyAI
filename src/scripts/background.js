@@ -48,6 +48,12 @@ function handleMessage(request, sender, sendResponse) {
         .catch((error) => sendResponse({ error: error.message }));
       break;
 
+    case "generateJobApplicationResponses":
+      generateJobApplicationResponses(request)
+        .then((response) => sendResponse(response))
+        .catch((error) => sendResponse({ error: error.message }));
+      break;
+
     case "openOptionsPage":
       chrome.runtime.openOptionsPage();
       sendResponse({ success: true });
@@ -175,6 +181,144 @@ Generate only the cover letter content, no additional commentary.
   }
 
   return data.candidates[0].content.parts[0].text;
+}
+
+async function generateJobApplicationResponses(request) {
+  try {
+    const { userProfile, questions, instructions } = request;
+    const settings = await chrome.storage.local.get(["geminiApiKey"]);
+
+    if (!settings.geminiApiKey) {
+      throw new Error("Missing Gemini API key. Please configure in settings.");
+    }
+
+    console.log(`Generating AI responses for ${questions.length} questions`);
+
+    const responses = await callGeminiForApplicationResponses(
+      userProfile,
+      questions,
+      instructions,
+      settings.geminiApiKey
+    );
+
+    return {
+      success: true,
+      responses: responses,
+    };
+  } catch (error) {
+    console.error("Error generating job application responses:", error);
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+
+async function callGeminiForApplicationResponses(userProfile, questions, instructions, apiKey) {
+  const profileText = Object.entries(userProfile)
+    .filter(([key, value]) => value && value !== "")
+    .map(([key, value]) => `${key}: ${value}`)
+    .join("\n");
+
+  const questionsList = questions
+    .map(
+      (q, index) =>
+        `${index + 1}. Question: "${q.question}"
+    Field Type: ${q.fieldType}
+    Max Length: ${q.maxLength} characters
+    Is Textarea: ${q.isTextarea}`
+    )
+    .join("\n\n");
+
+  const prompt = `
+You are an AI assistant helping with job applications. Based on the user's profile, generate professional and personalized responses to job application questions.
+
+USER PROFILE:
+${profileText}
+
+QUESTIONS TO ANSWER:
+${questionsList}
+
+INSTRUCTIONS:
+${instructions}
+
+IMPORTANT GUIDELINES:
+1. Keep responses concise and within the specified character limits
+2. Make responses sound natural and professional
+3. Base responses on the user's actual profile information
+4. For technical questions, focus on relevant experience and skills
+5. For motivation/interest questions, show genuine enthusiasm
+6. For percentage questions, provide realistic numbers based on the context
+7. Avoid generic or templated language
+8. Return responses in JSON format with question text as key and response as value
+
+Please return ONLY a JSON object where each key is the exact question text and the value is the generated response. Example format:
+{
+  "Why are you interested in this role?": "I am passionate about...",
+  "What percentage of time do you enjoy coding?": "85%"
+}
+`;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
+          maxOutputTokens: 2048,
+        },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`Gemini API error: ${errorData.error?.message || "Unknown error"}`);
+  }
+
+  const data = await response.json();
+
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+    throw new Error("Invalid response from Gemini API");
+  }
+
+  const responseText = data.candidates[0].content.parts[0].text;
+
+  try {
+    // Extract JSON from the response (remove any markdown formatting)
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    } else {
+      // Fallback: try to parse the entire response
+      return JSON.parse(responseText);
+    }
+  } catch (parseError) {
+    console.error("Error parsing AI response:", parseError);
+    console.log("Raw response:", responseText);
+
+    // Fallback: return empty responses object
+    const fallbackResponses = {};
+    questions.forEach((q) => {
+      fallbackResponses[q.question] = "Unable to generate response";
+    });
+    return fallbackResponses;
+  }
 }
 
 function setupContextMenu() {

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Feedback - ApplyAI</title>
+    <link rel="stylesheet" href="../styles/main.css" />
+    <style>
+      body {
+        background: #f7faff;
+        color: #222;
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+      .container {
+        max-width: 700px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0, 123, 255, 0.08);
+        padding: 32px 28px;
+      }
+      h1 {
+        color: #007bff;
+        margin-bottom: 18px;
+      }
+      @media (max-width: 600px) {
+        .container {
+          padding: 16px 6px;
+        }
+      }
+
+      .feedback-form {
+        background: transparent;
+        padding: 20px 0;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 14px;
+      }
+
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: border-color 0.3s ease;
+        box-sizing: border-box;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 120px;
+      }
+
+      .submit-btn {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .submit-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+      }
+
+      .submit-btn:active {
+        transform: translateY(0);
+      }
+
+      .feedback-header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .feedback-header p {
+        color: #6c757d;
+        font-size: 16px;
+        line-height: 1.5;
+      }
+
+      .feedback-types {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .feedback-type {
+        text-align: center;
+        padding: 15px 10px;
+        border: 2px solid #e1e5e9;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #fff;
+      }
+
+      .feedback-type:hover {
+        border-color: #007bff;
+        background: #f8f9fa;
+      }
+
+      .feedback-type.selected {
+        border-color: #007bff !important;
+        background: #e3f2fd !important;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+        transform: scale(1.02);
+      }
+
+      .feedback-type.selected .label {
+        color: #007bff;
+        font-weight: 700;
+      }
+
+      .feedback-type .icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+
+      .feedback-type .label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #2c3e50;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="back-nav">
+        <a href="popup.html" class="back-button">← Back to ApplyAI</a>
+      </div>
+
+      <div class="feedback-header">
+        <h1>We'd Love Your Feedback!</h1>
+        <p>
+          Help us improve ApplyAI by sharing your thoughts, suggestions, or reporting any issues you've encountered.
+        </p>
+      </div>
+
+      <form action="https://formspree.io/f/mzzvedoo" method="POST" class="feedback-form">
+        <div class="form-group">
+          <label>Feedback Type:</label>
+          <div class="feedback-types">
+            <div class="feedback-type" data-type="bug">
+              <div class="icon">🐛</div>
+              <div class="label">Bug Report</div>
+            </div>
+            <div class="feedback-type" data-type="feature">
+              <div class="icon">💡</div>
+              <div class="label">Feature Request</div>
+            </div>
+            <div class="feedback-type" data-type="improvement">
+              <div class="icon">⚡</div>
+              <div class="label">Improvement</div>
+            </div>
+            <div class="feedback-type" data-type="general">
+              <div class="icon">💬</div>
+              <div class="label">General</div>
+            </div>
+          </div>
+          <input type="hidden" name="feedback_type" id="feedbackType" required />
+        </div>
+
+        <div class="form-group">
+          <label for="email">Your Email:</label>
+          <input type="email" name="email" id="email" placeholder="your.email@example.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="subject">Subject:</label>
+          <input type="text" name="subject" id="subject" placeholder="Brief description of your feedback" required />
+        </div>
+
+        <div class="form-group">
+          <label for="message">Your Message:</label>
+          <textarea
+            name="message"
+            id="message"
+            placeholder="Please provide detailed information about your feedback. For bugs, include steps to reproduce the issue."
+            required
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="browser">Browser & Extension Version (optional):</label>
+          <input type="text" name="browser_info" id="browser" placeholder="e.g., Chrome 119, ApplyAI v1.0" />
+        </div>
+
+        <button type="submit" class="submit-btn">Send Feedback</button>
+      </form>
+    </div>
+
+    <footer class="legal-footer">
+      <div class="legal-links">
+        <span class="copyright">&copy; 2025 ApplyAI. All rights reserved.</span>
+        <a href="privacy.html" target="_blank">Privacy Policy</a>
+        <span class="divider">|</span>
+        <a href="terms.html" target="_blank">Terms of Service</a>
+        <span class="divider">|</span>
+        <a href="feedback.html" target="_blank">Feedback</a>
+      </div>
+    </footer>
+
+    <script src="feedback.js"></script>
+  </body>
+</html>

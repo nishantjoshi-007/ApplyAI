@@ -13,7 +13,7 @@
   color: #0056b3;
   font-size: 0.98em;
   letter-spacing: 0.01em;
-  margin-right: 60rem;
+  margin-right: 50rem;
 }
 /* Legal footer for options/settings */
 .legal-footer {
@@ -1269,4 +1269,40 @@ textarea {
   background: #007bff;
   color: white;
   text-decoration: none;
+}
+
+/* Popup footer styles */
+.popup-footer {
+  margin-top: 20px;
+  padding: 12px 16px 8px 16px;
+  border-top: 1px solid #e1e5e9;
+  background: linear-gradient(90deg, #f8f9fa 0%, #f1f3f4 100%);
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 12px;
+}
+
+.footer-link {
+  color: #6c757d;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.footer-link:hover {
+  color: #007bff;
+  text-decoration: none;
+  background: rgba(0, 123, 255, 0.05);
+}
+
+.footer-separator {
+  color: #dee2e6;
+  margin: 0 4px;
+  font-weight: 300;
 }
