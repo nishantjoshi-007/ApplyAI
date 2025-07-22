@@ -11,6 +11,15 @@
         
         <div id="statusMessage" style="display: none;"></div>
 
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <div class="loading-text">Applying your resume...</div>
+                <div class="loading-subtext">AI enabled smart extraction in progress...</div>
+            </div>
+        </div>
+
         <!-- Tab Navigation -->
         <div class="tab-navigation">
             <button class="tab-button active" data-tab="api-setup">🔑 API & Setup</button>
@@ -49,10 +58,10 @@
                         Fill in your personal details to enable automatic form filling on job application pages. You can upload your resume PDF to auto-import data or fill manually.
                     </div>
                     <div class="import-options">
-                        <label for="profileResumeFile" class="button secondary">📤 Upload Resume PDF</label>
-                        <input type="file" id="profileResumeFile" accept=".pdf,.doc,.docx,.txt" class="file-upload-input">
-                        <button type="button" id="importFromResumeBtn" class="button secondary">📄 Import from Uploaded Resume</button>
-                        <span class="help-text-inline">or fill manually below</span>
+                        <label for="profileResumeFile" class="file-upload-label disabled" id="resumeUploadLabel">📤 Upload Resume PDF</label>
+                        <input type="file" id="profileResumeFile" accept=".pdf,.doc,.docx,.txt" class="file-upload-input" disabled>
+                        <div id="resumeFileName" class="file-name-display" style="display: none;"></div>
+                        <span class="help-text-inline" id="resumeUploadHelp">Add your API key first to enable smart resume extraction</span>
                     </div>
                     
                     <div class="personal-details-grid">

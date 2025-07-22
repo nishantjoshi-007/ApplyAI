@@ -7,6 +7,7 @@
 <body class="popup-body">
     <div class="header">
         <h2>🤖 ApplyAI</h2>
+        <button id="settingsBtn" class="settings-btn" title="Open Settings"></button>
     </div>
 
     <div id="apiStatusBar" class="status info" style="display: none; margin-bottom: 10px;"></div>
@@ -53,12 +54,26 @@
             <div id="coverLetterPreview" class="cover-letter-preview"></div>
             
             <div class="actions">
-                <button id="downloadBtn" class="button">
-                    📥 Download PDF
-                </button>
-                <button id="regenerateBtn" class="button secondary">
-                    🔄 Regenerate
-                </button>
+                <div class="action-row">
+                    <button id="regenerateBtn" class="button secondary">
+                        🔄 Regenerate
+                    </button>
+                </div>
+                <div class="action-row">
+                    <button id="downloadBtn" class="button">
+                        📥 Download PDF
+                    </button>
+                    <button id="attachCoverLetterBtn" class="button secondary">
+                        📎 Attach PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="attachmentSection" class="section" style="display: none;">
+            <h4>📁 Quick Attach</h4>
+            <div class="attachment-actions">
+                <div id="attachmentStatus" class="attachment-status" style="display: none;"></div>
             </div>
         </div>
     </div>

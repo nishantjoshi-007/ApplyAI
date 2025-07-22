@@ -22,31 +22,73 @@ class SettingsManager {
     setupFileUploads() {
         // Profile Resume PDF upload (saves original PDF + extracts text for profile import)
         const profileResumeFile = document.getElementById('profileResumeFile');
+        const resumeUploadLabel = document.getElementById('resumeUploadLabel');
+        
         if (profileResumeFile) {
             profileResumeFile.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    this.showStatus('Uploading resume and saving original file...', 'info');
+                    // Check if API key is available before processing
+                    const apiKey = document.getElementById('geminiApiKey').value.trim();
+                    if (!apiKey) {
+                        this.showStatus('❌ API key required for smart resume extraction. Please add your Gemini API key first.', 'error');
+                        // Reset the file input
+                        profileResumeFile.value = '';
+                        return;
+                    }
+
+                    // Show file name
+                    const fileNameDisplay = document.getElementById('resumeFileName');
+                    if (fileNameDisplay) {
+                        fileNameDisplay.textContent = `📄 ${file.name}`;
+                        fileNameDisplay.style.display = 'block';
+                    }
+
+                    // Show loading overlay
+                    this.showLoadingOverlay(true);
+                    this.showStatus('Uploading and processing resume...', 'info');
                     
-                    // Save the original file as base64
-                    const base64File = await this.fileToBase64(file);
-                    await chrome.storage.local.set({ 
-                        resumeFileOriginal: base64File,
-                        resumeFileName: file.name,
-                        resumeFileType: file.type
-                    });
-                    
-                    // Extract text for profile import
-                    const extractedText = await this.parseFile(file);
-                    if (extractedText) {
-                        // Store the extracted text temporarily for import
-                        await chrome.storage.local.set({ resumeExtractedText: extractedText });
-                        this.showStatus('✅ Resume uploaded and saved! Use "Import from Uploaded Resume" to populate your profile.', 'success');
-                    } else {
-                        this.showStatus('Resume saved, but text extraction failed. You can still fill your profile manually.', 'warning');
+                    try {
+                        // Save the original file as base64
+                        const base64File = await this.fileToBase64(file);
+                        await chrome.storage.local.set({ 
+                            resumeFileOriginal: base64File,
+                            resumeFileName: file.name,
+                            resumeFileType: file.type
+                        });
+                        
+                        // Extract text for profile import
+                        const extractedText = await this.parseFile(file);
+                        if (extractedText) {
+                            // Store the extracted text temporarily for import
+                            await chrome.storage.local.set({ resumeExtractedText: extractedText });
+                            this.updateLoadingText('Extracting profile information with AI...');
+                            
+                            // Automatically import the resume data
+                            await this.importFromResume();
+                        } else {
+                            this.showStatus('Resume saved, but text extraction failed. You can still fill your profile manually.', 'warning');
+                        }
+                    } catch (error) {
+                        console.error('Error processing resume:', error);
+                        this.showStatus('Error processing resume. Please try again.', 'error');
+                    } finally {
+                        // Hide loading overlay
+                        this.showLoadingOverlay(false);
                     }
                 }
             });
+
+            // Add click handler to show error when disabled
+            if (resumeUploadLabel) {
+                resumeUploadLabel.addEventListener('click', (e) => {
+                    const apiKey = document.getElementById('geminiApiKey').value.trim();
+                    if (!apiKey) {
+                        e.preventDefault();
+                        this.showStatus('❌ Please add your Gemini API key first to enable smart resume extraction.', 'error');
+                    }
+                });
+            }
         }
         
         // Template file upload
@@ -156,7 +198,7 @@ class SettingsManager {
         try {
             const result = await chrome.storage.local.get([
                 'coverLetterTemplate', 'geminiApiKey', 'coverLetterTones',
-                'personalDetails'
+                'personalDetails', 'resumeFileName'
             ]);
             
             if (result.coverLetterTemplate) {
@@ -165,6 +207,15 @@ class SettingsManager {
             
             if (result.geminiApiKey) {
                 document.getElementById('geminiApiKey').value = result.geminiApiKey;
+            }
+
+            // Show previously uploaded resume file name
+            if (result.resumeFileName) {
+                const fileNameDisplay = document.getElementById('resumeFileName');
+                if (fileNameDisplay) {
+                    fileNameDisplay.textContent = `📄 ${result.resumeFileName}`;
+                    fileNameDisplay.style.display = 'block';
+                }
             }
 
             // Load selected tones
@@ -186,6 +237,9 @@ class SettingsManager {
             if (!result.coverLetterTemplate) {
                 this.setDefaultTemplate();
             }
+
+            // Update resume upload state based on API key
+            this.updateResumeUploadState();
             
         } catch (error) {
             console.error('Error loading settings:', error);
@@ -220,13 +274,47 @@ Sincerely,
             this.testConfiguration();
         });
 
-        // Import from resume button
-        document.getElementById('importFromResumeBtn').addEventListener('click', () => {
-            this.importFromResume();
-        });
+        // Monitor API key changes to enable/disable resume upload
+        const apiKeyInput = document.getElementById('geminiApiKey');
+        if (apiKeyInput) {
+            apiKeyInput.addEventListener('input', () => {
+                this.updateResumeUploadState();
+            });
+        }
+    }
 
-        // Keep resume content in sync between Documents and Personal Info tabs
-        this.setupResumeSync();
+    updateResumeUploadState() {
+        const apiKey = document.getElementById('geminiApiKey').value.trim();
+        const profileResumeFile = document.getElementById('profileResumeFile');
+        const resumeUploadLabel = document.getElementById('resumeUploadLabel');
+        const resumeUploadHelp = document.getElementById('resumeUploadHelp');
+
+        if (apiKey) {
+            // Enable upload
+            if (profileResumeFile) profileResumeFile.disabled = false;
+            if (resumeUploadLabel) resumeUploadLabel.classList.remove('disabled');
+            if (resumeUploadHelp) resumeUploadHelp.textContent = 'Resume data will be automatically imported after upload';
+        } else {
+            // Disable upload
+            if (profileResumeFile) profileResumeFile.disabled = true;
+            if (resumeUploadLabel) resumeUploadLabel.classList.add('disabled');
+            if (resumeUploadHelp) resumeUploadHelp.textContent = 'Add your API key first to enable smart resume extraction';
+        }
+    }
+
+    showLoadingOverlay(show) {
+        const overlay = document.getElementById('loadingOverlay');
+        if (overlay) {
+            overlay.style.display = show ? 'flex' : 'none';
+        }
+    }
+
+    updateLoadingText(mainText, subText = 'Using AI to extract your profile information') {
+        const loadingText = document.querySelector('.loading-text');
+        const loadingSubtext = document.querySelector('.loading-subtext');
+        
+        if (loadingText) loadingText.textContent = mainText;
+        if (loadingSubtext) loadingSubtext.textContent = subText;
     }
 
     async saveSettings() {
@@ -268,6 +356,24 @@ Sincerely,
         } catch (error) {
             console.error('Error saving settings:', error);
             this.showStatus('Error saving settings', 'error');
+        }
+    }
+
+    async savePersonalDetails() {
+        try {
+            // Collect personal details
+            const personalDetails = this.collectPersonalDetails();
+
+            // Save to storage
+            await chrome.storage.local.set({
+                personalDetails: personalDetails
+            });
+
+            console.log('Personal details saved automatically after resume extraction');
+
+        } catch (error) {
+            console.error('Error saving personal details:', error);
+            // Don't show error to user for auto-save, just log it
         }
     }
 
@@ -521,19 +627,18 @@ Sincerely,
 
     async importFromResume() {
         try {
-            // Check if API key is set
+            // Check if API key is set for auto-extraction
             if (!document.getElementById('geminiApiKey').value.trim()) {
-                this.showStatus('Please enter your Gemini API key to use the import feature', 'error');
+                this.showStatus('✅ Resume uploaded and saved! Add your API key to enable automatic profile data extraction.', 'success');
                 return;
             }
 
             // Get the resume details from storage
-            const result = await chrome.storage.local.get(['resumeExtractedText', 'resumeFile']);
+            const result = await chrome.storage.local.get(['resumeExtractedText']);
             const resumeText = result.resumeExtractedText;
-            const resumeFile = result.resumeFile;
 
-            if (!resumeText || !resumeFile) {
-                this.showStatus('Please upload a resume PDF first before importing', 'error');
+            if (!resumeText) {
+                this.showStatus('Resume uploaded but text extraction failed. Please fill your profile manually.', 'warning');
                 return;
             }
 
@@ -543,14 +648,16 @@ Sincerely,
             
             if (extractedInfo) {
                 this.populateFieldsFromExtractedInfo(extractedInfo);
-                this.showStatus('Successfully imported information from uploaded resume!', 'success');
+                // Automatically save the extracted profile data
+                await this.savePersonalDetails();
+                this.showStatus('✅ Resume uploaded and profile data automatically imported and saved!', 'success');
             } else {
-                this.showStatus('Could not extract information from resume. Please fill manually.', 'warning');
+                this.showStatus('✅ Resume uploaded! Could not auto-extract profile data. Please fill manually.', 'warning');
             }
             
         } catch (error) {
             console.error('Error importing from resume:', error);
-            this.showStatus('Error importing from resume. Please try again or fill manually.', 'error');
+            this.showStatus('✅ Resume uploaded! Auto-import failed, please fill manually.', 'warning');
         }
     }
 
@@ -648,32 +755,60 @@ Return only the JSON object, no additional text or explanation.`;
     }
 
     populateFieldsFromExtractedInfo(info) {
-        // Populate simple fields
+        // Populate simple fields with validation
         Object.keys(info).forEach(key => {
             if (key !== 'workExperience' && key !== 'education') {
                 const element = document.getElementById(key);
                 if (element && info[key] && info[key].trim && info[key].trim()) {
-                    element.value = info[key].trim();
+                    let value = info[key].trim();
+                    
+                    // Special handling for totalExperience field
+                    if (key === 'totalExperience') {
+                        // Extract numbers from text like "two years", "3 years", etc.
+                        const numberMatch = value.match(/(\d+)/);
+                        if (numberMatch) {
+                            value = numberMatch[1];
+                        } else {
+                            // Try to convert text numbers to digits
+                            const textNumbers = {
+                                'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5',
+                                'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10'
+                            };
+                            const lowerValue = value.toLowerCase();
+                            for (const [text, num] of Object.entries(textNumbers)) {
+                                if (lowerValue.includes(text)) {
+                                    value = num;
+                                    break;
+                                }
+                            }
+                        }
+                        // Only set if it's a valid number
+                        if (/^\d+$/.test(value)) {
+                            element.value = value;
+                        }
+                    } else {
+                        element.value = value;
+                    }
                 }
             }
         });
 
-        // Populate work experience
+        // Populate work experience with date validation
         if (info.workExperience && Array.isArray(info.workExperience) && info.workExperience.length > 0) {
             this.experienceEntries = info.workExperience.map(exp => ({
                 id: Date.now() + Math.random(),
                 title: exp.title || '',
                 company: exp.company || '',
                 location: exp.location || '',
-                startDate: exp.startDate || '',
-                endDate: exp.endDate || '',
+                startDate: this.validateMonthInput(exp.startDate),
+                endDate: exp.current ? '' : this.validateMonthInput(exp.endDate),
                 current: exp.current || false,
                 description: exp.description || ''
             }));
             this.renderExperienceEntries();
         }
 
-        // Populate education
+        // Populate education with date validation
         if (info.education && Array.isArray(info.education) && info.education.length > 0) {
             this.educationEntries = info.education.map(edu => ({
                 id: Date.now() + Math.random(),
@@ -681,12 +816,57 @@ Return only the JSON object, no additional text or explanation.`;
                 degree: edu.degree || '',
                 major: edu.major || '',
                 location: edu.location || '',
-                startDate: edu.startDate || '',
-                endDate: edu.endDate || '',
+                startDate: this.validateMonthInput(edu.startDate),
+                endDate: this.validateMonthInput(edu.endDate),
                 gpa: edu.gpa || ''
             }));
             this.renderEducationEntries();
         }
+    }
+
+    validateMonthInput(dateString) {
+        if (!dateString) return '';
+        
+        // If it's already in YYYY-MM format, return it
+        if (/^\d{4}-\d{2}$/.test(dateString)) {
+            return dateString;
+        }
+        
+        // If it contains "Present" or "Current", return empty (will be handled by current checkbox)
+        if (/present|current/i.test(dateString)) {
+            return '';
+        }
+        
+        // Try to extract year and month from various formats
+        const yearMatch = dateString.match(/20\d{2}|\d{4}/);
+        if (yearMatch) {
+            const year = yearMatch[0];
+            // Try to extract month (default to January if not found)
+            const monthMatch = dateString.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|january|february|march|april|may|june|july|august|september|october|november|december|\d{1,2})\b/i);
+            let month = '01';
+            
+            if (monthMatch) {
+                const monthStr = monthMatch[0].toLowerCase();
+                const monthMap = {
+                    'jan': '01', 'january': '01', 'feb': '02', 'february': '02',
+                    'mar': '03', 'march': '03', 'apr': '04', 'april': '04',
+                    'may': '05', 'jun': '06', 'june': '06', 'jul': '07', 'july': '07',
+                    'aug': '08', 'august': '08', 'sep': '09', 'september': '09',
+                    'oct': '10', 'october': '10', 'nov': '11', 'november': '11',
+                    'dec': '12', 'december': '12'
+                };
+                
+                if (monthMap[monthStr]) {
+                    month = monthMap[monthStr];
+                } else if (/^\d{1,2}$/.test(monthStr)) {
+                    month = monthStr.padStart(2, '0');
+                }
+            }
+            
+            return `${year}-${month}`;
+        }
+        
+        return '';
     }
 
     // Tab Management
@@ -694,10 +874,14 @@ Return only the JSON object, no additional text or explanation.`;
         var tabButtons = document.querySelectorAll('.tab-button');
         var tabContents = document.querySelectorAll('.tab-content');
 
+        console.log('Setting up tabs - found', tabButtons.length, 'tab buttons and', tabContents.length, 'tab contents');
+
         function switchTab(e) {
             try {
                 var targetTab = e.target.getAttribute('data-tab');
                 var targetContent = document.getElementById(targetTab);
+                
+                console.log('Switching to tab:', targetTab);
                 
                 if (!targetContent) {
                     console.error('Tab content not found for: ' + targetTab);
@@ -715,25 +899,31 @@ Return only the JSON object, no additional text or explanation.`;
                 // Add active class to clicked tab and corresponding content
                 e.target.classList.add('active');
                 targetContent.classList.add('active');
+                
+                console.log('Tab switched successfully to:', targetTab);
             } catch (error) {
                 console.error('Error switching tabs:', error);
             }
         }
 
         // Bind click events to each tab button
-        tabButtons.forEach(function(button) {
+        tabButtons.forEach(function(button, index) {
+            console.log('Binding click event to tab button', index, 'with data-tab:', button.getAttribute('data-tab'));
             button.addEventListener('click', switchTab);
         });
 
         // Set the first tab as active by default if no tab is currently active
         var activeTab = document.querySelector('.tab-button.active');
         if (!activeTab && tabButtons.length > 0) {
+            console.log('No active tab found, setting first tab as active');
             tabButtons[0].classList.add('active');
             var firstTabId = tabButtons[0].getAttribute('data-tab');
             var firstContent = document.getElementById(firstTabId);
             if (firstContent) {
                 firstContent.classList.add('active');
             }
+        } else {
+            console.log('Active tab found:', activeTab ? activeTab.getAttribute('data-tab') : 'none');
         }
     }
 

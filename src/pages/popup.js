@@ -41,7 +41,7 @@ class CoverLetterGenerator {
                 return;
             }
             // Use Gemini 2.0 Flash Experimental endpoint
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -91,7 +91,7 @@ class CoverLetterGenerator {
             
             // Show main content and conditionally display features
             this.showMainContent();
-            this.configureAvailableFeatures(hasApiKey, hasPersonalDetails, hasCoverTemplate);
+            await this.configureAvailableFeatures(hasApiKey, hasPersonalDetails, hasCoverTemplate);
             return true;
         } catch (error) {
             console.error('Error checking setup:', error);
@@ -100,7 +100,7 @@ class CoverLetterGenerator {
         }
     }
 
-    configureAvailableFeatures(hasApiKey, hasPersonalDetails, hasCoverTemplate) {
+    async configureAvailableFeatures(hasApiKey, hasPersonalDetails, hasCoverTemplate) {
         const generateBtn = document.getElementById('generateBtn');
         const autofillBtn = document.getElementById('autofillBtn');
         const divider = document.querySelector('.divider');
@@ -116,9 +116,28 @@ class CoverLetterGenerator {
 
         // Configure autofill functionality (personal details required)
         if (hasPersonalDetails) {
-            autofillBtn.style.display = 'block';
-            autofillBtn.disabled = false;
-            autofillBtn.title = 'Autofill application forms with your profile';
+            // Check if resume file is available to update button text
+            try {
+                const result = await chrome.storage.local.get(['resumeFileOriginal']);
+                const hasResume = result.resumeFileOriginal;
+                
+                autofillBtn.style.display = 'block';
+                autofillBtn.disabled = false;
+                
+                if (hasResume) {
+                    autofillBtn.textContent = '📝 Autofill Form + Attach Resume';
+                    autofillBtn.title = 'Autofill application forms with your profile and attach saved resume';
+                } else {
+                    autofillBtn.textContent = '📝 Autofill Application Form';
+                    autofillBtn.title = 'Autofill application forms with your profile';
+                }
+            } catch (error) {
+                console.error('Error checking resume file:', error);
+                autofillBtn.style.display = 'block';
+                autofillBtn.disabled = false;
+                autofillBtn.textContent = '📝 Autofill Application Form';
+                autofillBtn.title = 'Autofill application forms with your profile';
+            }
         } else {
             autofillBtn.style.display = 'none';
         }
@@ -140,9 +159,9 @@ class CoverLetterGenerator {
         // Cover letter generation status
         if (!hasPersonalDetails) {
             if (!hasApiKey) {
-                statusMessages.push('⚠️ Add your API key and upload your resume in Settings to enable cover letter generation.');
+                statusMessages.push('⚠️ Add your API key and upload your resume in Settings to enable all features.');
             } else {
-                statusMessages.push('⚠️ Upload your resume in Settings to enable cover letter generation and autofill.');
+                statusMessages.push('⚠️ Upload your resume in Settings to enable cover letter generation and smart autofill.');
             }
         } else if (!hasApiKey) {
             statusMessages.push('⚠️ Add your API key to enable cover letter generation.');
@@ -178,6 +197,10 @@ class CoverLetterGenerator {
             chrome.runtime.openOptionsPage();
         });
 
+        document.getElementById('settingsBtn')?.addEventListener('click', () => {
+            chrome.runtime.openOptionsPage();
+        });
+
         document.getElementById('generateBtn')?.addEventListener('click', () => {
             this.generateCoverLetter();
         });
@@ -196,6 +219,10 @@ class CoverLetterGenerator {
             if (generateBtn) generateBtn.style.display = 'block';
             this.generateCoverLetter();
         });
+
+        document.getElementById('attachCoverLetterBtn')?.addEventListener('click', () => {
+            this.attachCoverLetterToForm();
+        });
     }
 
     async generateCoverLetter() {
@@ -213,7 +240,15 @@ class CoverLetterGenerator {
                 throw new Error('Could not extract job description from this page');
             }
             this.currentJobDescription = jobDescription;
-            this.showJobInfo(jobDescription);
+            
+            // Update the job info display with the scraped description
+            const jobInfoElement = document.getElementById('jobInfo');
+            const jobInfoSection = document.getElementById('jobInfoSection');
+            if (jobInfoElement && jobInfoSection) {
+                jobInfoElement.textContent = jobDescription.substring(0, 300) + (jobDescription.length > 300 ? '...' : '');
+                jobInfoSection.style.display = 'block';
+            }
+            
             // Generate cover letter using Gemini API
             const coverLetter = await this.callGeminiAPI(jobDescription);
             this.generatedCoverLetter = coverLetter;
@@ -338,7 +373,7 @@ Instructions:
 Generate only the cover letter content, no additional commentary.
         `.trim();
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${result.geminiApiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${result.geminiApiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -472,14 +507,14 @@ Generate only the cover letter content, no additional commentary.
     async handleAutofill() {
         try {
             // Check if personal details are configured
-            const result = await chrome.storage.local.get(['personalDetails']);
+            const result = await chrome.storage.local.get(['personalDetails', 'resumeFileOriginal', 'resumeFileName']);
             
             if (!result.personalDetails || !this.hasRequiredPersonalDetails(result.personalDetails)) {
                 this.showAutofillStatus('Please configure your personal details in settings first.', 'error');
                 return;
             }
 
-            this.showAutofillStatus('Scanning page for form fields...', 'info');
+            this.showAutofillStatus('🔍 Scanning page for form fields...', 'info');
 
             // Get current tab
             const tabs = await chrome.tabs.query({active: true, currentWindow: true});
@@ -491,31 +526,53 @@ Generate only the cover letter content, no additional commentary.
             });
 
             if (scanResult.formInfo.inputsFound === 0) {
-                this.showAutofillStatus('No fillable form fields found on this page.', 'error');
+                this.showAutofillStatus('❌ No fillable form fields found on this page.', 'error');
                 return;
             }
 
             // Show scan results
             this.displayFormScanResults(scanResult.formInfo);
 
-            // Perform autofill
+            // Perform autofill of text fields
+            this.showAutofillStatus('📝 Filling form fields...', 'info');
             const autofillResult = await chrome.tabs.sendMessage(currentTab.id, {
                 action: 'autofillForm',
                 personalDetails: result.personalDetails
             });
 
+            let successMessage = '✅ Form autofilled successfully!';
+            let hasResume = result.resumeFileOriginal && result.resumeFileName;
+
+            // Also try to attach resume file if available
+            if (hasResume) {
+                try {
+                    this.showAutofillStatus('📄 Attaching resume file...', 'info');
+                    
+                    await chrome.scripting.executeScript({
+                        target: { tabId: currentTab.id },
+                        func: injectResumeFileScript,
+                        args: [result.resumeFileOriginal, result.resumeFileName]
+                    });
+
+                    successMessage = '✅ Form autofilled and resume attached successfully!';
+                } catch (resumeError) {
+                    console.error('Error attaching resume during autofill:', resumeError);
+                    successMessage = '✅ Form autofilled! (Resume attachment failed - no suitable file upload found)';
+                }
+            }
+
             if (autofillResult.success) {
-                this.showAutofillStatus('Form autofill completed successfully!', 'success');
+                this.showAutofillStatus(successMessage, 'success');
             } else {
-                this.showAutofillStatus('Autofill completed with some issues. Please review the form.', 'warning');
+                this.showAutofillStatus('⚠️ Autofill completed with some issues. Please review the form.', 'warning');
             }
 
         } catch (error) {
             console.error('Error during autofill:', error);
             if (error.message.includes('Could not establish connection')) {
-                this.showAutofillStatus('Please refresh the page and try again.', 'error');
+                this.showAutofillStatus('❌ Please refresh the page and try again.', 'error');
             } else {
-                this.showAutofillStatus('Error during autofill. Please try again.', 'error');
+                this.showAutofillStatus('❌ Error during autofill. Please try again.', 'error');
             }
         }
     }
@@ -567,6 +624,200 @@ Generate only the cover letter content, no additional commentary.
         }
     }
 
+    async attachCoverLetterToForm() {
+        try {
+            if (!this.generatedCoverLetter) {
+                this.showAttachmentStatus('❌ No cover letter generated yet. Generate one first.', 'error');
+                return;
+            }
+
+            this.showAttachmentStatus('🔍 Creating PDF and searching for cover letter upload fields...', 'info');
+            
+            // Create PDF from the generated cover letter
+            const pdfBlob = await this.createCoverLetterPDF(this.generatedCoverLetter);
+            
+            // Convert blob to file data for injection
+            const fileData = await this.blobToFileData(pdfBlob, 'cover-letter.pdf');
+            
+            // Inject script to find and populate cover letter file upload fields
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            
+            await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                func: injectCoverLetterFileScript,
+                args: [fileData, 'cover-letter.pdf']
+            });
+
+            this.showAttachmentStatus('✅ Cover letter PDF attachment process completed!', 'success');
+
+        } catch (error) {
+            console.error('Error attaching cover letter:', error);
+            this.showAttachmentStatus('❌ Error attaching cover letter PDF. Please try manually.', 'error');
+        }
+    }
+
+    async createCoverLetterPDF(coverLetterText) {
+        return new Promise((resolve) => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Set font and margins
+            doc.setFont("times", "normal");
+            doc.setFontSize(12);
+            
+            const margin = 20;
+            const pageWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const maxLineWidth = pageWidth - (margin * 2);
+            
+            // Split text into lines that fit the page width
+            const lines = doc.splitTextToSize(coverLetterText, maxLineWidth);
+            
+            let currentY = margin;
+            const lineHeight = 7;
+            
+            lines.forEach((line) => {
+                // Check if we need a new page
+                if (currentY + lineHeight > pageHeight - margin) {
+                    doc.addPage();
+                    currentY = margin;
+                }
+                
+                doc.text(line, margin, currentY);
+                currentY += lineHeight;
+            });
+            
+            // Convert to blob
+            const pdfBlob = doc.output('blob');
+            resolve(pdfBlob);
+        });
+    }
+
+    async blobToFileData(blob, fileName) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                // Convert blob to base64
+                const base64 = reader.result.split(',')[1];
+                resolve({
+                    data: base64,
+                    mimeType: 'application/pdf',
+                    name: fileName,
+                    size: blob.size
+                });
+            };
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    injectResumeFile(fileData, fileName) {
+        try {
+            // Find file upload inputs that might be for resume
+            const fileInputs = document.querySelectorAll('input[type="file"]');
+            const resumeInputs = Array.from(fileInputs).filter(input => {
+                const context = (input.name + ' ' + input.id + ' ' + (input.getAttribute('placeholder') || '') + ' ' + (input.closest('label')?.textContent || '')).toLowerCase();
+                return context.includes('resume') || context.includes('cv') || context.includes('upload') || context.includes('attach') || context.includes('file');
+            });
+
+            if (resumeInputs.length === 0) {
+                // If no specific resume inputs found, try any file input as fallback
+                const allFileInputs = Array.from(fileInputs);
+                if (allFileInputs.length > 0) {
+                    resumeInputs.push(allFileInputs[0]);
+                } else {
+                    console.log('No file upload fields found on this page.');
+                    return false;
+                }
+            }
+
+            // Convert base64 to File object
+            const byteCharacters = atob(fileData.data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const file = new File([byteArray], fileName, { type: fileData.mimeType });
+
+            // Create FileList
+            const dt = new DataTransfer();
+            dt.items.add(file);
+
+            // Attach to first suitable input
+            const targetInput = resumeInputs[0];
+            targetInput.files = dt.files;
+            targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+            
+            // Highlight the field briefly
+            targetInput.style.border = '2px solid #007bff';
+            targetInput.style.transition = 'border 0.3s ease';
+            setTimeout(() => {
+                targetInput.style.border = '';
+                targetInput.style.transition = '';
+            }, 2000);
+            
+            console.log(`Resume attached successfully: ${fileName}`);
+            return true;
+
+        } catch (error) {
+            console.error('Error attaching resume file:', error);
+            return false;
+        }
+    }
+
+    injectCoverLetter(coverLetterText) {
+        // Find textarea or text inputs that might be for cover letter
+        const textInputs = document.querySelectorAll('textarea, input[type="text"]');
+        const coverLetterInputs = Array.from(textInputs).filter(input => {
+            const context = (input.name + ' ' + input.id + ' ' + (input.getAttribute('placeholder') || '') + ' ' + (input.closest('label')?.textContent || '')).toLowerCase();
+            return context.includes('cover') || context.includes('letter') || context.includes('motivation') || context.includes('message') || 
+                   (input.tagName.toLowerCase() === 'textarea' && context.includes('additional'));
+        });
+
+        if (coverLetterInputs.length === 0) {
+            // Fallback: look for large textareas
+            const largeTextareas = Array.from(document.querySelectorAll('textarea')).filter(ta => 
+                ta.getAttribute('maxlength') > 500 || !ta.getAttribute('maxlength')
+            );
+            if (largeTextareas.length > 0) {
+                coverLetterInputs.push(largeTextareas[0]);
+            }
+        }
+
+        if (coverLetterInputs.length === 0) {
+            alert('No cover letter fields found on this page.');
+            return;
+        }
+
+        // Attach to first suitable input
+        const targetInput = coverLetterInputs[0];
+        targetInput.value = coverLetterText;
+        targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+        targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Highlight the field briefly
+        targetInput.style.border = '2px solid #28a745';
+        setTimeout(() => targetInput.style.border = '', 2000);
+        
+        alert('✅ Cover letter attached to form field!');
+    }
+
+    showAttachmentStatus(message, type) {
+        const statusElement = document.getElementById('attachmentStatus');
+        if (statusElement) {
+            statusElement.textContent = message;
+            statusElement.className = `attachment-status ${type}`;
+            statusElement.style.display = 'block';
+            
+            // Auto-hide after 5 seconds for success/error
+            if (type === 'success' || type === 'error') {
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+    }
+
     getStatusIcon(type) {
         const icons = {
             'info': '🔍',
@@ -582,3 +833,124 @@ Generate only the cover letter content, no additional commentary.
 document.addEventListener('DOMContentLoaded', () => {
     new CoverLetterGenerator();
 });
+
+// Standalone functions for injection (these need to be outside the class)
+function injectResumeFileScript(fileData, fileName) {
+    try {
+        // Find file upload inputs that might be for resume
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        const resumeInputs = Array.from(fileInputs).filter(input => {
+            const context = (input.name + ' ' + input.id + ' ' + (input.getAttribute('placeholder') || '') + ' ' + (input.closest('label')?.textContent || '')).toLowerCase();
+            return context.includes('resume') || context.includes('cv') || context.includes('upload') || context.includes('attach') || context.includes('file');
+        });
+
+        if (resumeInputs.length === 0) {
+            // If no specific resume inputs found, try any file input as fallback
+            const allFileInputs = Array.from(fileInputs);
+            if (allFileInputs.length > 0) {
+                resumeInputs.push(allFileInputs[0]);
+            } else {
+                console.log('No file upload fields found on this page.');
+                return false;
+            }
+        }
+
+        // Convert base64 to File object
+        const byteCharacters = atob(fileData.data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const file = new File([byteArray], fileName, { type: fileData.mimeType });
+
+        // Create FileList
+        const dt = new DataTransfer();
+        dt.items.add(file);
+
+        // Attach to first suitable input
+        const targetInput = resumeInputs[0];
+        targetInput.files = dt.files;
+        targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Highlight the field briefly
+        targetInput.style.border = '2px solid #007bff';
+        targetInput.style.transition = 'border 0.3s ease';
+        setTimeout(() => {
+            targetInput.style.border = '';
+            targetInput.style.transition = '';
+        }, 2000);
+        
+        console.log(`Resume attached successfully: ${fileName}`);
+        return true;
+
+    } catch (error) {
+        console.error('Error attaching resume file:', error);
+        return false;
+    }
+}
+
+function injectCoverLetterFileScript(fileData, fileName) {
+    try {
+        // Find file upload inputs that might be for cover letter
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        const coverLetterInputs = Array.from(fileInputs).filter(input => {
+            const context = (input.name + ' ' + input.id + ' ' + (input.getAttribute('placeholder') || '') + ' ' + (input.closest('label')?.textContent || '')).toLowerCase();
+            return context.includes('cover') || context.includes('letter') || context.includes('motivation') || 
+                   context.includes('additional') || context.includes('document') || 
+                   context.includes('upload') || context.includes('attach') || context.includes('file');
+        });
+
+        if (coverLetterInputs.length === 0) {
+            // If no specific cover letter inputs found, try any file input as fallback
+            // But prioritize ones that are NOT specifically for resume
+            const nonResumeInputs = Array.from(fileInputs).filter(input => {
+                const context = (input.name + ' ' + input.id + ' ' + (input.getAttribute('placeholder') || '') + ' ' + (input.closest('label')?.textContent || '')).toLowerCase();
+                return !context.includes('resume') && !context.includes('cv');
+            });
+            
+            if (nonResumeInputs.length > 0) {
+                coverLetterInputs.push(nonResumeInputs[0]);
+            } else if (fileInputs.length > 1) {
+                // If multiple file inputs, use the second one (first might be for resume)
+                coverLetterInputs.push(fileInputs[1]);
+            } else {
+                console.log('No suitable cover letter upload fields found on this page.');
+                return false;
+            }
+        }
+
+        // Convert base64 to File object
+        const byteCharacters = atob(fileData.data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const file = new File([byteArray], fileName, { type: fileData.mimeType });
+
+        // Create FileList
+        const dt = new DataTransfer();
+        dt.items.add(file);
+
+        // Attach to first suitable input
+        const targetInput = coverLetterInputs[0];
+        targetInput.files = dt.files;
+        targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        // Highlight the field briefly
+        targetInput.style.border = '2px solid #28a745';
+        targetInput.style.transition = 'border 0.3s ease';
+        setTimeout(() => {
+            targetInput.style.border = '';
+            targetInput.style.transition = '';
+        }, 2000);
+        
+        console.log(`Cover letter PDF attached successfully: ${fileName}`);
+        return true;
+
+    } catch (error) {
+        console.error('Error attaching cover letter file:', error);
+        return false;
+    }
+}
